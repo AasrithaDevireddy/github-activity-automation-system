@@ -1,0 +1,78 @@
+name: GitHub Activity Automation
+
+on:
+  schedule:
+    # Daily Commit Agent — runs every day at 09:00 UTC
+    - cron: "0 9 * * *"
+    # Project Creator Agent — runs every Monday at 10:00 UTC
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Which agent to run"
+        required: true
+        default: "daily_commit"
+        type: choice
+        options:
+          - daily_commit
+          - project_creator
+      force:
+        description: "Bypass idempotency / interval guard"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Daily Commit Agent
+        if: >
+          github.event_name == 'schedule' && github.event.schedule == '0 9 * * *' ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.agent == 'daily_commit')
+        env:
+          GITHUB_TOKEN: ${{ secrets.AUTOMATION_GITHUB_TOKEN }}
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+        run: |
+          FORCE_FLAG=""
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+          python daily_commit.py $FORCE_FLAG
+
+      - name: Run Project Creator Agent
+        if: >
+          github.event_name == 'schedule' && github.event.schedule == '0 10 * * 1' ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.agent == 'project_creator')
+        env:
+          GITHUB_TOKEN: ${{ secrets.AUTOMATION_GITHUB_TOKEN }}
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+        run: |
+          FORCE_FLAG=""
+          if [ "${{ github.event.inputs.force }}" == "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+          python project_creator.py $FORCE_FLAG
+
+      - name: Commit updated state files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions"
+          git add state/ || true
+          git diff --staged --quiet || git commit -m "chore: update agent state [skip ci]"
+          git push || true

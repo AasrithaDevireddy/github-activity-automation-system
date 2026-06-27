@@ -1,0 +1,53 @@
+{
+  "kill_switch": false,
+
+  "daily_commit": {
+    "tracking_file": "activity.log",
+    "min_commits": 1,
+    "max_commits": 3,
+    "commit_messages": [
+      "chore: update activity log [automated]",
+      "chore: daily maintenance commit [automated]",
+      "chore: keep repo active [automated]",
+      "docs: update contribution log [automated]",
+      "chore: routine activity update [automated]",
+      "chore: scheduled log entry [automated]",
+      "chore: auto-maintenance commit [automated]"
+    ],
+    "state_file": "state/daily_commit_state.json"
+  },
+
+  "project_creator": {
+    "supported_languages": ["python", "javascript"],
+    "default_language": "python",
+    "state_file": "state/project_creator_state.json",
+    "run_interval_days": 3,
+    "project_ideas": [
+      "cli-todo-app",
+      "weather-dashboard",
+      "url-shortener",
+      "markdown-note-taker",
+      "expense-tracker",
+      "pomodoro-timer",
+      "file-organizer",
+      "password-generator",
+      "quiz-app",
+      "text-analyzer",
+      "unit-converter",
+      "recipe-manager",
+      "habit-tracker",
+      "rss-reader",
+      "csv-cleaner"
+    ],
+    "use_ai_api": true,
+    "ai_api_provider": "huggingface",
+    "repo_visibility": "public"
+  },
+
+  "logging": {
+    "log_file": "logs/automation.log",
+    "log_level": "INFO",
+    "max_log_size_mb": 10,
+    "backup_count": 3
+  }
+}
